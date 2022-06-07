@@ -6,7 +6,7 @@
 
 using namespace std;
 int* vigilanciaBasica(int* solucion, int filaActual);
-void vigilanciaAvanzada(int* camaraEnColumna, int fila);
+bool vigilanciaAvanzada(int* camaraEnColumna, int fila);
 bool valido(int* solucion, int filaActual);
 void mostrarSolucion(int* sol);
 
@@ -18,6 +18,7 @@ int main()
         solucion[i]=0;
 
     //vigilanciaBasica(solucion,0);
+    cout << "(COLUMNA,FILA) MAX("<<COLUMNAS-1<<","<<FILAS-1<<")"<<endl;
     vigilanciaAvanzada(solucion,0);
 //    for(int z=0;z<FILAS; z++){
 //            if(solucion[z]>-1)
@@ -62,43 +63,42 @@ int* vigilanciaBasica(int* solucion, int filaActual)
     }
 }
 
-void vigilanciaAvanzada(int* camaraEnColumna, int fila)
+bool vigilanciaAvanzada(int* camaraEnColumna, int fila)
 {
-    int columna=0;
-
-    if(fila==FILAS){
+    /* base case: If all queens are placed
+    then return true */
+    if (fila == FILAS) {
         mostrarSolucion(camaraEnColumna);
-        return;
+        return true;
     }
-
-    //repetir mientras la columna no sea válida y el número de columnas no se haya superado
-    while (!valido(camaraEnColumna,fila))
-    {
-        cout<<" ESTO "<<camaraEnColumna[fila]<<endl;
-        camaraEnColumna[fila]++;
-    }
-    if(camaraEnColumna[fila]>=COLUMNAS) camaraEnColumna[fila]=-1;//Si se pasa de columnas no se puede colocar en esta fila una camara
-    vigilanciaAvanzada(camaraEnColumna,fila+1);
-
-    //backtrack
-    camaraEnColumna[fila]=0;
-    
-    /* OPCIÓN FOR
-    for (int col = 0; col < COLUMNAS; col++)
-    {
+ 
+    /* comprobar en la fila actual cada columna */
+    bool res = false;
+    for (int col = 0; col <= COLUMNAS; col++) {
+        /*si es una posición valida, se guarda en el array solución y llama a la función recursiva*/
         camaraEnColumna[fila]=col;
-        //Termina la recursividad cuando no debería porque comprueba todas las columnas, ninguna es valida y entonces no llama más a la función
-        //Necesito que siga hacindo llamada aunque pase por todas las columnas sin éxito
-        if(valido(camaraEnColumna,fila)){
-            vigilanciaAvanzada(camaraEnColumna,fila+1);
-        }else
-        {
+        if (valido(camaraEnColumna,fila)&&col<COLUMNAS) {
+ 
+            // Si se puede colocar una camara res = true
+            res = vigilanciaAvanzada(camaraEnColumna, fila + 1);
+ 
+            camaraEnColumna[fila] = 0; //BACKTRACK
+        }else //En caso de comprobar todas las columnas y que ninguna sea valida, no llamaría a la función recursiva
+              // y terminaría sin llegar a la solución, para evitar esto esta el siguiente if
+        if(col == COLUMNAS){//TO DO Al hacer backtacking, si no se encuentra una coluna válida se elimina la que ya había, eso MAL
+            //Se marca con -1 para indicar que en esta fila no hay sitio y se llama a la función para la siguiente
             camaraEnColumna[fila]=-1;
+            res = vigilanciaAvanzada(camaraEnColumna, fila + 1);
+            camaraEnColumna[fila] = 0; //BACKTRACK
         }
-    } 
-    */
-
+    }
+ 
+    /* If queen can not be place in any row in
+        this column col then return false */
+    return res;
 }
+
+
 
 bool valido(int* solucion, int filaActual){
     bool valido = true;
@@ -123,6 +123,6 @@ bool valido(int* solucion, int filaActual){
 
 void mostrarSolucion(int* sol){
         for(int z=0;z<FILAS; z++){
-            cout << "  ("<< sol[z] <<","<<z<<")";
+            if (sol[z]>-1) cout << "  ("<< sol[z] <<","<<z<<")";
         }cout<<endl;
 }
